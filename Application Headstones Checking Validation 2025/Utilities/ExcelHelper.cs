@@ -135,7 +135,7 @@ namespace Application_Headstones_Checking_Validation_2025.Utilities
                         application.DefaultVersion = ExcelVersion.Xlsx;
                         IWorkbook workbook = application.Workbooks.Open(excelFilePath);
 
-                        if (sheetIndex > workbook.Worksheets.Count)
+                        if (!IsWorksheetAtIndexExist(workbook, sheetIndex))
                         {
                             WarningMessage("Sheet doesn't exist.");
                             return;
@@ -177,7 +177,7 @@ namespace Application_Headstones_Checking_Validation_2025.Utilities
                         application.DefaultVersion = ExcelVersion.Xlsx;
                         IWorkbook workbook = application.Workbooks.Open(excelFilePath);
 
-                        if (sheetIndex > workbook.Worksheets.Count)
+                        if (!IsWorksheetAtIndexExist(workbook, sheetIndex))
                         {
                             WarningMessage("Sheet doesn't exist.");
                             return;
@@ -211,7 +211,7 @@ namespace Application_Headstones_Checking_Validation_2025.Utilities
                         application.DefaultVersion = ExcelVersion.Xlsx;
                         IWorkbook workbook = application.Workbooks.Open(excelFilePath);
 
-                        if (sheetIndex > workbook.Worksheets.Count)
+                        if (!IsWorksheetAtIndexExist(workbook, sheetIndex))
                         {
                             WarningMessage("Sheet doesn't exist.");
                             return;
@@ -250,10 +250,7 @@ namespace Application_Headstones_Checking_Validation_2025.Utilities
                         application.DefaultVersion = ExcelVersion.Xlsx;
                         IWorkbook workbook = application.Workbooks.Open(excelFilePath);
 
-                        if (sheetIndex != application.Worksheets.Count)
-                        {
-                            workbook.Worksheets.Create();
-                        }
+                        CreateWorksheetIfNotExist(ref workbook, sheetIndex);
 
                         // Remove unnecessary sheets
                         foreach (IWorksheet ws in workbook.Worksheets.ToList())
@@ -339,7 +336,7 @@ namespace Application_Headstones_Checking_Validation_2025.Utilities
 
                         IWorkbook workbook = application.Workbooks.Open(excelFilePath);
 
-                        if (sheetIndex > workbook.Worksheets.Count)
+                        if (!IsWorksheetAtIndexExist(workbook, sheetIndex))
                         {
                             WarningMessage("Sheet doesn't exist.");
                             return;
@@ -350,6 +347,32 @@ namespace Application_Headstones_Checking_Validation_2025.Utilities
                         workbook.Save();
                     }
                 });
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage(ex);
+            }
+        }
+
+        private bool IsWorksheetAtIndexExist(IWorkbook wb, int sheetIndex)
+        {
+            try
+            {
+                return wb.Worksheets.Count >= sheetIndex + 1;
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage(ex);
+                return false;
+            }
+        }
+
+        private void CreateWorksheetIfNotExist(ref IWorkbook wb, int sheetIndex)
+        {
+            try
+            {
+                if (!IsWorksheetAtIndexExist(wb, sheetIndex))
+                    wb.Worksheets.Create();
             }
             catch (Exception ex)
             {

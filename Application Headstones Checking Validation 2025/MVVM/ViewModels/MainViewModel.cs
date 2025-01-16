@@ -70,11 +70,15 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
                 IEnumerable<ExcelDataModel> oldOutputData = await _excelHelper.GetIEnumerableExcelData<ExcelDataModel>(OldOutputTextFilePath);
                 IEnumerable<ExcelDataModel> newOutputData = await _excelHelper.GetIEnumerableExcelData<ExcelDataModel>(NewOutputTextFilePath);
 
+                int findRowAtOldOutputDataIndex = 0;
+
                 // Do the comparison here
                 foreach (ExcelDataModel newData in newOutputData)
                 {
                     // find the data from old output data by UID
-                    ExcelDataModel oldDataItem = oldOutputData.FirstOrDefault(id => id.UID == newData.UID);
+                    ExcelDataModel oldDataItem = oldOutputData.ElementAtOrDefault(findRowAtOldOutputDataIndex);
+                    findRowAtOldOutputDataIndex++;
+                    if (oldDataItem == null) continue;
 
                     foreach (PropertyInfo property in newData.GetType().GetProperties())
                     {
