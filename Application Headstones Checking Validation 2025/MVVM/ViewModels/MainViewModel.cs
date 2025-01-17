@@ -88,7 +88,7 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
                         // Get property name as FieldName
                         // Get the Value of the property
                         string fieldName = property.Name.Trim();
-                        string newValue = property.GetValue(newData).ToString().Trim();
+                        string newValue = property.GetValue(newData).ToString().Replace("\u200b", " ").Trim();
 
                         // Find the old property from old data item by property name
                         PropertyInfo oldProperty = oldDataItem.GetType()
@@ -97,7 +97,7 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
 
 
                         if (oldProperty == null) return;
-                        string oldValue = oldProperty.GetValue(oldDataItem).ToString();
+                        string oldValue = oldProperty.GetValue(oldDataItem).ToString().Replace("\u200b", " ").Trim();
 
                         // Check first the resultChanges if the fieldName does exist
                         // Get the item

@@ -25,7 +25,7 @@ namespace Application_Headstones_Checking_Validation_2025.Abstract
         {
             get
             {
-                return $"{ApplicationName} v1.1";
+                return $"{ApplicationName} v1.2";
             }
         }
 
