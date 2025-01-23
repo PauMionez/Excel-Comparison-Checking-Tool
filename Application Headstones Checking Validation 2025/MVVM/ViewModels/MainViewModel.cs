@@ -63,9 +63,11 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
             try
             {
                 if (!HasOutputTextFilePaths()) return;
-                int sheetIndex = 1;
+                int resultSheetIndex = 1;
+                int reportSheetIndex = 2;
 
                 List<ExcelComparisonStatusModel> resultChanges = new List<ExcelComparisonStatusModel>();
+                List<ExcelComparisonStatusReportModel> statusReport = new List<ExcelComparisonStatusReportModel>();
                 // Get the data from the excel files
                 IEnumerable<ExcelDataModel> oldOutputData = await _excelHelper.GetIEnumerableExcelData<ExcelDataModel>(OldOutputTextFilePath);
                 IEnumerable<ExcelDataModel> newOutputData = await _excelHelper.GetIEnumerableExcelData<ExcelDataModel>(NewOutputTextFilePath);
@@ -84,6 +86,10 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
                     {
                         if (property == null) continue;
                         if (property.Name.Equals("UID", StringComparison.OrdinalIgnoreCase)) continue;
+
+
+                        bool hasError = false;
+                        string errorName = string.Empty;
 
                         // Get property name as FieldName
                         // Get the Value of the property
@@ -120,16 +126,37 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
                         if (!string.IsNullOrWhiteSpace(oldValue) && string.IsNullOrWhiteSpace(newValue))
                         {
                             existingStatus.Deleted++;
+                            hasError = true;
+                            errorName = "Deleted";
+                            //Debug.WriteLine($"{newData.Image_ID} {fieldName} {oldValue} {newValue} deleted");
                         }
                         // Uncoded
                         else if (string.IsNullOrWhiteSpace(oldValue) && !string.IsNullOrWhiteSpace(newValue))
                         {
                             existingStatus.Uncoded++;
+                            hasError = true;
+                            errorName = "Uncoded";
+                            //Debug.WriteLine($"{newData.Image_ID} {fieldName} {oldValue} {newValue} uncoded");
                         }
                         // Miscoded
                         else if (!oldValue.Equals(newValue))
                         {
                             existingStatus.Miscoded++;
+                            hasError = true;
+                            errorName = "Miscoded";
+                            //Debug.WriteLine($"{newData.Image_ID} {fieldName} {oldValue} {newValue} miscoded");
+                        }
+
+                        if (hasError)
+                        {
+                            statusReport.Add(new ExcelComparisonStatusReportModel
+                            {
+                                ImageNumber = newData.Image_ID,
+                                Fields = fieldName,
+                                Coded = oldValue,
+                                Correction = newValue,
+                                TypeError = errorName
+                            });
                         }
 
                         existingStatus.TotalErrors = existingStatus.TotalErrorsCount();
@@ -156,21 +183,37 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
                     Miscoded = TotalMiscoded,
                 });
 
+                // Ensure proper sorting and preserve original order
+                List<ExcelComparisonStatusReportModel> sortedStatusReport = statusReport
+                    .Select((model, index) => new { Model = model, Index = index })
+                    .GroupBy(x => x.Model.Fields)
+                    .OrderBy(g => g.Max(x => x.Index))
+                    .SelectMany(g => g)
+                    .Select(x => x.Model)
+                    .ToList();
+
                 #region Process Excel Sheet
+
+                #region Process Errors
                 // Add the resultChanges to a new sheet in new output file excel
-                await _excelHelper.AddDataAtSheetIndex(NewOutputTextFilePath, sheetIndex, resultChanges);
-
+                await _excelHelper.AddDataAtSheetIndex(NewOutputTextFilePath, resultSheetIndex, resultChanges);
                 // activate sheet at index
-                await _excelHelper.ActivateSheetAtIndex(NewOutputTextFilePath, sheetIndex);
-
+                await _excelHelper.ActivateSheetAtIndex(NewOutputTextFilePath, resultSheetIndex);
                 // modify font to bold
                 // header and lastrow
                 // at sheet 2
-                await _excelHelper.ModifyFontToBoldAtFullRow(NewOutputTextFilePath, sheetIndex, 1, resultChanges.Count + 1);
-
+                await _excelHelper.ModifyFontToBoldAtFullRow(NewOutputTextFilePath, resultSheetIndex, 1, resultChanges.Count + 1);
                 // modify text alignment to right
                 // last row and col 1 at sheet 2
-                await _excelHelper.ModifyTextHAlignmentAtCell(NewOutputTextFilePath, resultChanges.Count + 1, 1, Syncfusion.XlsIO.ExcelHAlign.HAlignRight, sheetIndex);
+                await _excelHelper.ModifyTextHAlignmentAtCell(NewOutputTextFilePath, resultChanges.Count + 1, 1, Syncfusion.XlsIO.ExcelHAlign.HAlignRight, resultSheetIndex);
+                #endregion
+
+                #region Process Status Report
+                await _excelHelper.AddDataAtSheetIndex(NewOutputTextFilePath, reportSheetIndex, sortedStatusReport);
+                await _excelHelper.ActivateSheetAtIndex(NewOutputTextFilePath, reportSheetIndex);
+                await _excelHelper.ModifyFontToBoldAtFullRow(NewOutputTextFilePath, reportSheetIndex, 1);
+                #endregion
+
                 #endregion
 
                 // Prompt a message

@@ -82,6 +82,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="MVVM\Models\ExcelComparisonStatusModel.cs" />
+    <Compile Include="MVVM\Models\ExcelComparisonStatusReportModel.cs" />
     <Compile Include="MVVM\Models\ExcelDataModel.cs" />
     <Compile Include="Utilities\DirectoryHelper.cs" />
     <Compile Include="Utilities\ExcelHelper.cs" />

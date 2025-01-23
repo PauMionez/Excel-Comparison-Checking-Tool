@@ -1,4 +1,5 @@
 ﻿using Application_Headstones_Checking_Validation_2025.Abstract;
+using DevExpress.Mvvm.Native;
 using Syncfusion.XlsIO;
 using System;
 using System.Collections.Generic;
@@ -31,7 +32,7 @@ namespace Application_Headstones_Checking_Validation_2025.Utilities
 
                         for (int i = 1; i <= worksheet.UsedRange.LastColumn; i++)
                         {
-                            string header = worksheet[1, i].Text.Trim();
+                            string header = worksheet[1, i].DisplayText.Trim();
 
                             if (string.IsNullOrWhiteSpace(header)) continue;
 
@@ -80,7 +81,7 @@ namespace Application_Headstones_Checking_Validation_2025.Utilities
                         // Read headers
                         for (int col = 1; col <= lastColumn; col++)
                         {
-                            string header = worksheet[1, col].Text.Trim();
+                            string header = worksheet[1, col].DisplayText.Trim();
                             if (string.IsNullOrWhiteSpace(header)) continue;
 
                             headers[col] = header;
@@ -311,6 +312,7 @@ namespace Application_Headstones_Checking_Validation_2025.Utilities
                         worksheet.UsedRange.WrapText = false;
                         worksheet.UsedRange.AutofitColumns();
                         worksheet.UsedRange.AutofitRows();
+                        worksheet.UsedRange.CellStyle.HorizontalAlignment = ExcelHAlign.HAlignLeft;
 
                         workbook.Save();
                     }
