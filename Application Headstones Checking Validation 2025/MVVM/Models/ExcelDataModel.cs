@@ -1,10 +1,15 @@
-﻿namespace Application_Headstones_Checking_Validation_2025.MVVM.Models
+﻿using System.Collections.Generic;
+
+namespace Application_Headstones_Checking_Validation_2025.MVVM.Models
 {
     internal class ExcelDataModel
     {
         public string UID { get; set; }
         public string Folder_ID { get; set; }
         public string Image_ID { get; set; }
+        public string Image_Name { get; set; }
+        public string ImageNumber { get; set; }
+        public string ImageName { get; set; }
         public string Form_Type { get; set; }
         public string Given_Name { get; set; }
         public string Surname { get; set; }
@@ -32,5 +37,9 @@
         public string Applicant_Given_Name { get; set; }
         public string Applicant_Surname { get; set; }
         public string Applicant_Residence { get; set; }
+
+
+        // Add this for dynamic/unexpected columns
+        public Dictionary<string, string> AdditionalFields { get; set; } = new Dictionary<string, string>();
     }
 }

@@ -12,7 +12,8 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
     internal class MainViewModel : Abstract.ViewModelBase
     {
         #region Constants
-        const string EXCEL_EXTENSION = "*.xlsx";
+        //const string EXCEL_EXTENSION = "*.xlsx";
+        private static readonly string[] EXCEL_EXTENSION = { "*.xlsx", "*.xls", "*.xlsm", "*.xltx", "*.xltm", "*.xlsb" };
         #endregion
 
         /// <summary>
@@ -58,6 +59,11 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
             _excelHelper = new ExcelHelper();
         }
 
+        /// <summary>
+        /// Added AdditionalFields to the ExcelDataModel for dynamic/unexpected columns
+        /// also added AdditionalFields to exceldatamodel
+        /// </summary>
+        /// <returns></returns>
         private async Task CompareChangesExecuteAsync()
         {
             try
@@ -94,7 +100,8 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
                         // Get property name as FieldName
                         // Get the Value of the property
                         string fieldName = property.Name.Trim();
-                        string newValue = property.GetValue(newData).ToString().Replace("\u200b", " ").Trim();
+                        string newValue = property.GetValue(newData)?.ToString().Replace("\u200b", " ").Trim() ?? string.Empty;
+                        //string newValue = property.GetValue(newData).ToString().Replace("\u200b", " ").Trim();
 
                         // Find the old property from old data item by property name
                         PropertyInfo oldProperty = oldDataItem.GetType()
@@ -102,66 +109,89 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
                                                               .FirstOrDefault(e => e.Name.Equals(fieldName, StringComparison.OrdinalIgnoreCase));
 
 
-                        if (oldProperty == null) return;
-                        string oldValue = oldProperty.GetValue(oldDataItem).ToString().Replace("\u200b", " ").Trim();
+                        //if (oldProperty == null) return;
+                        if (oldProperty == null) continue;
+                        string oldValue = oldProperty.GetValue(oldDataItem)?.ToString().Replace("\u200b", " ").Trim() ?? string.Empty;
+                        //string oldValue = oldProperty.GetValue(oldDataItem).ToString().Replace("\u200b", " ").Trim();
 
-                        // Check first the resultChanges if the fieldName does exist
-                        // Get the item
-                        ExcelComparisonStatusModel existingStatus = resultChanges.FirstOrDefault(e => e.Fields == fieldName);
+                        CompareAndAddStatus(fieldName, oldValue, newValue, GetPossibleImageId(newData), resultChanges, statusReport);
 
-                        // If the item does not exist
-                        // Add to resultChanges
-                        if (existingStatus == null)
-                        {
-                            existingStatus = new ExcelComparisonStatusModel { Fields = fieldName };
-                            resultChanges.Add(existingStatus);
-                        }
+                        #region dump
+                        //// Check first the resultChanges if the fieldName does exist
+                        //// Get the item
+                        //ExcelComparisonStatusModel existingStatus = resultChanges.FirstOrDefault(e => e.Fields == fieldName);
 
-                        // Check for changes
-                        // Deleted: "When the value has changed to BLANK/EMPTY
-                        // Uncoded: "When the BLANK/EMPTY value has changed
-                        // Miscoded: "When the value has changed"
+                        //// If the item does not exist
+                        //// Add to resultChanges
+                        //if (existingStatus == null)
+                        //{
+                        //    existingStatus = new ExcelComparisonStatusModel { Fields = fieldName };
+                        //    resultChanges.Add(existingStatus);
+                        //}
 
-                        // Deleted
-                        if (!string.IsNullOrWhiteSpace(oldValue) && string.IsNullOrWhiteSpace(newValue))
-                        {
-                            existingStatus.Deleted++;
-                            hasError = true;
-                            errorName = "Deleted";
-                            //Debug.WriteLine($"{newData.Image_ID} {fieldName} {oldValue} {newValue} deleted");
-                        }
-                        // Uncoded
-                        else if (string.IsNullOrWhiteSpace(oldValue) && !string.IsNullOrWhiteSpace(newValue))
-                        {
-                            existingStatus.Uncoded++;
-                            hasError = true;
-                            errorName = "Uncoded";
-                            //Debug.WriteLine($"{newData.Image_ID} {fieldName} {oldValue} {newValue} uncoded");
-                        }
-                        // Miscoded
-                        else if (!oldValue.Equals(newValue))
-                        {
-                            existingStatus.Miscoded++;
-                            hasError = true;
-                            errorName = "Miscoded";
-                            //Debug.WriteLine($"{newData.Image_ID} {fieldName} {oldValue} {newValue} miscoded");
-                        }
+                        //// Check for changes
+                        //// Deleted: "When the value has changed to BLANK/EMPTY
+                        //// Uncoded: "When the BLANK/EMPTY value has changed
+                        //// Miscoded: "When the value has changed"
 
-                        if (hasError)
-                        {
-                            statusReport.Add(new ExcelComparisonStatusReportModel
-                            {
-                                ImageNumber = newData.Image_ID,
-                                Fields = fieldName,
-                                Coded = oldValue,
-                                Correction = newValue,
-                                TypeError = errorName
-                            });
-                        }
 
-                        existingStatus.TotalErrors = existingStatus.TotalErrorsCount();
+                        //bool skipBecauseOfQuestionMark = (oldValue == "?" ^ newValue == "?");
+
+                        //// Deleted
+                        //if (!string.IsNullOrWhiteSpace(oldValue) && string.IsNullOrWhiteSpace(newValue))
+                        //{
+                        //    existingStatus.Deleted++;
+                        //    hasError = true;
+                        //    errorName = "Deleted";
+                        //    //Debug.WriteLine($"{newData.Image_ID} {fieldName} {oldValue} {newValue} deleted");
+                        //}
+                        //// Uncoded
+                        //else if (string.IsNullOrWhiteSpace(oldValue) && !string.IsNullOrWhiteSpace(newValue))
+                        //{
+                        //    existingStatus.Uncoded++;
+                        //    hasError = true;
+                        //    errorName = "Uncoded";
+                        //    //Debug.WriteLine($"{newData.Image_ID} {fieldName} {oldValue} {newValue} uncoded");
+                        //}
+                        //// Miscoded
+                        //else if (!oldValue.Equals(newValue))
+                        //{
+                        //    existingStatus.Miscoded++;
+                        //    hasError = true;
+                        //    errorName = "Miscoded";
+                        //    //Debug.WriteLine($"{newData.Image_ID} {fieldName} {oldValue} {newValue} miscoded");
+                        //}
+
+                        //if (hasError)
+                        //{
+                        //    statusReport.Add(new ExcelComparisonStatusReportModel
+                        //    {
+                        //        ImageNumber = newData.Image_ID,
+                        //        Fields = fieldName,
+                        //        Coded = oldValue,
+                        //        Correction = newValue,
+                        //        TypeError = errorName
+                        //    });
+                        //}
+
+                        //existingStatus.TotalErrors = existingStatus.TotalErrorsCount();
+                        #endregion
+                    }
+
+                    //Compare AdditionalFields (dynamically-added columns)
+                    foreach (var kvp in newData.AdditionalFields)
+                    {
+                        string fieldName = kvp.Key;
+                        string newValue = kvp.Value?.Replace("\u200b", " ").Trim() ?? string.Empty;
+                        string oldValue = oldDataItem.AdditionalFields.ContainsKey(fieldName)
+                            ? oldDataItem.AdditionalFields[fieldName]?.Replace("\u200b", " ").Trim() ?? string.Empty
+                            : string.Empty;
+
+                        CompareAndAddStatus(fieldName, oldValue, newValue, GetPossibleImageId(newData), resultChanges, statusReport);
                     }
                 }
+
+
 
                 // Tally
                 int TotalMiscoded = 0;
@@ -230,11 +260,124 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
             }
         }
 
+
+        /// <summary>
+        /// Compare the old and new values of the field Validation
+        /// Check for changes
+        /// Deleted: "When the value has changed to BLANK/EMPTY
+        /// Uncoded: "When the BLANK/EMPTY value has changed
+        /// Miscoded: "When the value has changed"
+        /// Skip comparison if change is between "?" and a letter (in either direction)
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="oldValue"></param>
+        /// <param name="newValue"></param>
+        /// <param name="imageId"></param>
+        /// <param name="resultChanges"></param>
+        /// <param name="statusReport"></param>
+        private void CompareAndAddStatus(string fieldName, string oldValue, string newValue, string imageId, List<ExcelComparisonStatusModel> resultChanges, List<ExcelComparisonStatusReportModel> statusReport)
+        {
+            try
+            {
+                bool hasError = false;
+                string errorName = string.Empty;
+
+
+                // Skip "?"
+                if ((oldValue == "?" && !string.IsNullOrWhiteSpace(newValue) && newValue != "?") ||
+                    (newValue == "?" && !string.IsNullOrWhiteSpace(oldValue) && oldValue != "?"))
+                {
+                    return;
+                }
+
+                // Check first the resultChanges if the fieldName does exist
+                // Get the item
+                ExcelComparisonStatusModel existingStatus = resultChanges.FirstOrDefault(e => e.Fields == fieldName);
+
+                // If the item does not exist
+                // Add to resultChanges
+                if (existingStatus == null)
+                {
+                    existingStatus = new ExcelComparisonStatusModel { Fields = fieldName };
+                    resultChanges.Add(existingStatus);
+                }
+
+                // Deleted
+                if (!string.IsNullOrWhiteSpace(oldValue) && string.IsNullOrWhiteSpace(newValue))
+                {
+                    existingStatus.Deleted++;
+                    hasError = true;
+                    errorName = "Deleted";
+                }
+                // Uncoded
+                else if (string.IsNullOrWhiteSpace(oldValue) && !string.IsNullOrWhiteSpace(newValue))
+                {
+                    existingStatus.Uncoded++;
+                    hasError = true;
+                    errorName = "Uncoded";
+                }
+                // Miscoded
+                else if (!oldValue.Equals(newValue, StringComparison.Ordinal))
+                {
+                    existingStatus.Miscoded++;
+                    hasError = true;
+                    errorName = "Miscoded";
+                }
+
+                if (hasError)
+                {
+                    statusReport.Add(new ExcelComparisonStatusReportModel
+                    {
+                        ImageNumber = imageId,
+                        Fields = fieldName,
+                        Coded = oldValue,
+                        Correction = newValue,
+                        TypeError = errorName
+                    });
+                }
+
+                existingStatus.TotalErrors = existingStatus.TotalErrorsCount();
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage(ex);
+            }
+        }
+
+        /// <summary>
+        /// For Dynamic Image_ID
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        private string GetPossibleImageId(ExcelDataModel data)
+        {
+            string result = string.Empty;
+            try
+            {
+                List<string> imageIdList = new List<string>
+                {
+                    data.Image_ID,
+                    data.Image_Name,
+                    data.ImageNumber,
+                    data.ImageName
+                };
+
+                result = imageIdList.FirstOrDefault(e => !string.IsNullOrWhiteSpace(e)) ?? "Unknown";
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage(ex);
+            }
+            return result;
+        }
+
+
         private void SelectNewOutputExecute()
         {
             try
             {
-                string newOutputFilePath = GetFilePath("Excel File (*.xlsx)|*.xlsx", EXCEL_EXTENSION, "Select New Output Excel File");
+                string filterExtensions = string.Join(";", EXCEL_EXTENSION.Select(ext => $"*.{ext}"));
+                string newOutputFilePath = GetFilePath("Excel File (*.xlsx)|*.xlsx", filterExtensions, "Select New Output Excel File");
 
                 if (HasOutputTextFile(newOutputFilePath))
                     NewOutputTextFilePath = newOutputFilePath;
@@ -250,7 +393,8 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
         {
             try
             {
-                string oldOutputFilePath = GetFilePath("Excel File (*.xlsx)|*.xlsx", EXCEL_EXTENSION, "Select Old Output Excel File");
+                string filterExtensions = string.Join(";", EXCEL_EXTENSION.Select(ext => $"*.{ext}"));
+                string oldOutputFilePath = GetFilePath("Excel File (*.xlsx)|*.xlsx", filterExtensions, "Select Old Output Excel File");
 
                 if (HasOutputTextFile(oldOutputFilePath))
                     OldOutputTextFilePath = oldOutputFilePath;

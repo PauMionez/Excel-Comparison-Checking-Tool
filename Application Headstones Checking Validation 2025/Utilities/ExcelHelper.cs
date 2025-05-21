@@ -1,4 +1,5 @@
 ﻿using Application_Headstones_Checking_Validation_2025.Abstract;
+using Application_Headstones_Checking_Validation_2025.MVVM.Models;
 using DevExpress.Mvvm.Native;
 using Syncfusion.XlsIO;
 using System;
@@ -54,14 +55,22 @@ namespace Application_Headstones_Checking_Validation_2025.Utilities
             }
         }
 
-        public async Task<IEnumerable<T>> GetIEnumerableExcelData<T>(string excelFilePath) where T : new()
+        /// <summary>
+        /// Use ExcelDataModel for dynamic/unexpected columns
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="excelFilePath"></param>
+        /// <returns></returns>
+        //public async Task<IEnumerable<T>> GetIEnumerableExcelData<T>(string excelFilePath) where T : new()
+        public async Task<IEnumerable<ExcelDataModel>> GetIEnumerableExcelData<T>(string excelFilePath) where T : new()
         {
 
             try
             {
                 if (string.IsNullOrWhiteSpace(excelFilePath)) return null;
 
-                List<T> resultList = new List<T>();
+                //List<T> resultList = new List<T>();
+                List<ExcelDataModel> resultList = new List<ExcelDataModel>();
 
                 await Task.Run(() =>
                 {
@@ -82,14 +91,14 @@ namespace Application_Headstones_Checking_Validation_2025.Utilities
                         for (int col = 1; col <= lastColumn; col++)
                         {
                             string header = worksheet[1, col].DisplayText.Trim();
-                            if (string.IsNullOrWhiteSpace(header)) continue;
-
-                            headers[col] = header;
+                            if (!string.IsNullOrWhiteSpace(header))
+                            { headers[col] = header; }
                         }
 
                         // Read data and map to model
                         for (int row = 2; row <= lastRow; row++)
                         {
+                            /*dump
                             T item = new T();
                             foreach (KeyValuePair<int, string> header in headers)
                             {
@@ -104,9 +113,35 @@ namespace Application_Headstones_Checking_Validation_2025.Utilities
                                     property.SetValue(item, safeValue);
                                 }
 
+                            }*/
+
+                            var model = new ExcelDataModel();
+
+                            foreach (KeyValuePair<int, string> header in headers)
+                            {
+                                int col = header.Key;
+                                string headerValue = header.Value;
+                                string value = worksheet[row, col].DisplayText?.Trim() ?? "";
+
+
+                                PropertyInfo property = typeof(ExcelDataModel).GetProperty(headerValue, 
+                                    BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+
+
+                                if (property != null && property.CanWrite)
+                                {
+                                    string cellValue = worksheet[row, col].Value;
+                                    object safeValue = Convert.ChangeType(cellValue, property.PropertyType);
+                                    property.SetValue(model, safeValue);
+                                }
+                                else
+                                {
+                                    model.AdditionalFields[headerValue] = value;
+                                }
                             }
 
-                            resultList.Add(item);
+
+                            resultList.Add(model);
                         }
                     }
                 });
