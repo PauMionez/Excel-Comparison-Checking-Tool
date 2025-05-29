@@ -115,7 +115,7 @@ namespace Application_Headstones_Checking_Validation_2025.Utilities
 
                             }*/
 
-                            var model = new ExcelDataModel();
+                            ExcelDataModel model = new ExcelDataModel();
 
                             foreach (KeyValuePair<int, string> header in headers)
                             {

@@ -16,7 +16,8 @@ namespace Application_Headstones_Checking_Validation_2025.Abstract
         /// <summary>
         /// Set the application name
         /// </summary>
-        public string ApplicationName { get { return "Application Headstones Checking Validation 2025"; } }
+        //public string ApplicationName { get { return "Application Headstones Checking Validation 2025"; } }
+        public string ApplicationName { get { return "Error Count Checking Validation 2025"; } }
 
         /// <summary>
         /// Set the application version here.
@@ -25,7 +26,7 @@ namespace Application_Headstones_Checking_Validation_2025.Abstract
         {
             get
             {
-                return $"{ApplicationName} v1.4";
+                return $"{ApplicationName} v1.6";
             }
         }
 

@@ -15,12 +15,19 @@
 
         // Total Errors
         public int TotalErrors { get; set; }
+        
+        ////Characters Count
+        //public int Char_Coded { get; set; }
+        //public int Char_Correct { get; set; }
+
 
         public ExcelComparisonStatusModel()
         {
             Miscoded = 0;
             Uncoded = 0;
             Deleted = 0;
+            //Char_Coded = 0;
+            //Char_Correct = 0;
             TotalErrors = 0;
         }
 

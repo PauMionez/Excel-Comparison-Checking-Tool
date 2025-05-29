@@ -7,5 +7,6 @@
         public string Coded { get; set; }
         public string Correction { get; set; }
         public string TypeError { get; set; }
+       
     }
 }
