@@ -109,7 +109,7 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
                     int oldCount = oldList.Count;
                     int newCount = newList.Count;
 
-                    //Add empty items to oldList if newList has more items
+                   
                     if (oldCount < newCount)
                     {
                         int diff = newCount - oldCount;
@@ -121,7 +121,7 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
                             });
                         }
                     }
-                    // Add empty items to newList if oldList has more items
+                    
                     else if (newCount < oldCount)
                     {
                         int diff = oldCount - newCount;
