@@ -8,6 +8,7 @@ Compare two excel files (original vs modified file) and record these changes.
 ## Authors
 
 - TRB2002: Jemuel Morales
+- TRB1954: Ma. Pauline Mae Mionez
 
 ## Documentation
 
