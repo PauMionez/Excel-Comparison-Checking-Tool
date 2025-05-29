@@ -65,6 +65,7 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
         /// Compare the old and new output files
         /// Group the data by Image_ID etc.
         /// Add empty items to oldList if newList has more items and flag it as Uncoded
+        /// Add empty items to newList if oldList has more items and flag it as Deleted
         /// Added AdditionalFields to the ExcelDataModel for dynamic/unexpected columns
         /// also added AdditionalFields to exceldatamodel
         /// </summary>
@@ -109,7 +110,7 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
                     int oldCount = oldList.Count;
                     int newCount = newList.Count;
 
-                   
+                    //Add empty items to oldList if newList has more items
                     if (oldCount < newCount)
                     {
                         int diff = newCount - oldCount;
@@ -121,7 +122,7 @@ namespace Application_Headstones_Checking_Validation_2025.MVVM.ViewModels
                             });
                         }
                     }
-                    
+                    // Add empty items to newList if oldList has more items
                     else if (newCount < oldCount)
                     {
                         int diff = oldCount - newCount;
